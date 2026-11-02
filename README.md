@@ -28,6 +28,16 @@ A API fica disponível em <http://127.0.0.1:8000>. A rota `GET /health` verifica
 
 Copie `backend/.env.example` para `backend/.env` e preencha as credenciais e o nome do modelo escolhido. O arquivo `.env` é ignorado pelo Git. As variáveis serão utilizadas quando a integração com o modelo for implementada.
 
+## Preparar dados para o agente
+
+Com o ambiente virtual ativado, execute a partir de `backend/`:
+
+```bash
+python prepare_data.py
+```
+
+O comando valida as relações entre os CSVs, interpreta as especificações JSON dos produtos, lê as políticas em PDF e gera `backend/processed/agent_documents.jsonl`, pronto para indexação semântica. Clientes e pedidos são validados, mas não entram nesses documentos: consulte esses dados de forma estruturada para evitar indexar informações pessoais. Para conferir as contagens e a integridade dos arquivos, execute `python explore.py`.
+
 ## Dependências
 
 - **FastAPI e Uvicorn:** API HTTP e servidor local.
