@@ -2,6 +2,8 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
+from google.genai import errors as genai_errors
+
 from src.agent import _get_llm, responder
 from src.knowledge_base import KnowledgeBase
 
@@ -32,6 +34,55 @@ class AgentTests(unittest.TestCase):
             "Prazo de devolução: 7 dias corridos.",
             llm.models.generate_content.call_args.kwargs["contents"],
         )
+
+    def test_uses_fallback_model_when_primary_is_temporarily_unavailable(self) -> None:
+        knowledge_base = FakeKnowledgeBase(["A loja abre às 9h."])
+        completion = SimpleNamespace(text="A loja abre às 9h.")
+        llm = Mock()
+        llm.models.generate_content.side_effect = [
+            genai_errors.APIError(503, {"message": "model overloaded"}),
+            completion,
+        ]
+
+        with (
+            patch("src.agent._get_llm", return_value=llm),
+            patch.dict(
+                "os.environ",
+                {
+                    "GEMINI_MODEL": "primary-model",
+                    "GEMINI_FALLBACK_MODEL": "fallback-model",
+                },
+            ),
+        ):
+            reply = responder("Qual é o horário?", knowledge_base)
+
+        self.assertEqual(reply, "A loja abre às 9h.")
+        self.assertEqual(
+            [call.kwargs["model"] for call in llm.models.generate_content.call_args_list],
+            ["primary-model", "fallback-model"],
+        )
+
+    def test_does_not_use_fallback_for_nontransient_provider_errors(self) -> None:
+        knowledge_base = FakeKnowledgeBase(["A loja abre às 9h."])
+        llm = Mock()
+        llm.models.generate_content.side_effect = genai_errors.APIError(
+            400, {"message": "invalid request"}
+        )
+
+        with (
+            patch("src.agent._get_llm", return_value=llm),
+            patch.dict(
+                "os.environ",
+                {
+                    "GEMINI_MODEL": "primary-model",
+                    "GEMINI_FALLBACK_MODEL": "fallback-model",
+                },
+            ),
+            self.assertRaises(genai_errors.APIError),
+        ):
+            responder("Qual é o horário?", knowledge_base)
+
+        llm.models.generate_content.assert_called_once()
 
     def test_returns_fallback_without_calling_model_when_search_is_empty(self) -> None:
         knowledge_base = FakeKnowledgeBase([])

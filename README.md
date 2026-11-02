@@ -26,7 +26,7 @@ A API fica disponível em <http://127.0.0.1:8000>. A rota `GET /` mostra os link
 
 ## Configuração do modelo
 
-Copie `backend/.env.example` para `backend/.env` e preencha `GEMINI_API_KEY` com uma chave criada no [Google AI Studio](https://aistudio.google.com/api-keys). Ajuste `GEMINI_MODEL` e `GEMINI_EMBEDDING_MODEL` se necessário. O arquivo `.env` é ignorado pelo Git.
+Copie `backend/.env.example` para `backend/.env` e preencha `GEMINI_API_KEY` com uma chave criada no [Google AI Studio](https://aistudio.google.com/api-keys). `GEMINI_MODEL` define o modelo principal; se ele estiver temporariamente indisponível, o agente tenta `GEMINI_FALLBACK_MODEL` (por padrão, `gemini-3.5-flash`). Ajuste também `GEMINI_EMBEDDING_MODEL` se necessário. O arquivo `.env` é ignorado pelo Git.
 
 ## Preparar dados para o agente
 
@@ -50,7 +50,7 @@ npm install
 npm run dev
 ```
 
-Abra o endereço exibido pelo Vite. Durante o desenvolvimento, as rotas `/api` e `/health` são encaminhadas para o backend em `http://localhost:8000`; mantenha a API em execução para conversar com o agente. Para validar o frontend, execute `npm run lint` e `npm run build` dentro de `frontend/`.
+Abra o endereço exibido pelo Vite. Durante o desenvolvimento, as rotas `/api` e `/health` são encaminhadas para o backend em `http://localhost:8000`; mantenha a API em execução para conversar com o agente. O frontend mantém uma lista local de conversas no navegador: é possível alternar entre elas e excluir cada histórico pela barra lateral. Esses dados não são enviados como contexto ao agente nem sincronizados com o backend. A interface oferece temas claro e escuro, salva a preferência no navegador e usa a preferência do sistema na primeira visita. Para validar o frontend, execute `npm run lint` e `npm run build` dentro de `frontend/`.
 
 ## Dependências
 

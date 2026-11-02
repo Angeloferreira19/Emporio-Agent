@@ -72,6 +72,21 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 503)
         self.assertIn("cota gratuita", response.json()["detail"])
 
+    def test_chat_reports_temporary_gemini_unavailability_as_service_unavailable(self) -> None:
+        with patch(
+            "main.responder",
+            side_effect=genai_errors.ServerError(
+                503, {"message": "model is experiencing high demand"}
+            ),
+        ):
+            response = self.client.post(
+                "/api/chat",
+                json={"session_id": "session-1", "message": "Oi"},
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("temporariamente indisponível", response.json()["detail"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import MessageBubble from './MessageBubble.jsx'
 
 const suggestions = [
@@ -25,15 +25,26 @@ const suggestions = [
 ]
 
 export default function ChatWindow({ messages, isLoading, onSuggestion }) {
-  const endOfMessagesRef = useRef(null)
+  const welcomeRef = useRef(null)
+  const messageListRef = useRef(null)
 
-  useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  useLayoutEffect(() => {
+    if (!messages.length) {
+      if (welcomeRef.current) welcomeRef.current.scrollTop = 0
+      return
+    }
+
+    if (!messageListRef.current) return
+
+    messageListRef.current.scrollTo({
+      top: messageListRef.current.scrollHeight,
+      behavior: 'instant',
+    })
   }, [messages, isLoading])
 
   if (messages.length === 0) {
     return (
-      <div className="welcome-screen">
+      <div className="welcome-screen" ref={welcomeRef}>
         <div className="welcome-kicker">
           <span className="sparkle" aria-hidden="true">✳</span>
           BEM-VINDO(A) AO EMPÓRIO
@@ -57,13 +68,12 @@ export default function ChatWindow({ messages, isLoading, onSuggestion }) {
             </button>
           ))}
         </div>
-        <div ref={endOfMessagesRef} />
       </div>
     )
   }
 
   return (
-    <div className="message-list" aria-live="polite">
+    <div className="message-list" aria-live="polite" ref={messageListRef}>
       <div className="conversation-date"><span>CONVERSA DE HOJE</span></div>
       {messages.map((message, index) => (
         <MessageBubble key={`${message.role}-${index}`} message={message} />
@@ -74,7 +84,6 @@ export default function ChatWindow({ messages, isLoading, onSuggestion }) {
           <div className="typing-bubble"><span /><span /><span /></div>
         </div>
       )}
-      <div ref={endOfMessagesRef} />
     </div>
   )
 }

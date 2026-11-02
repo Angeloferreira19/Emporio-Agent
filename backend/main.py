@@ -79,10 +79,17 @@ def chat(request: ChatRequest) -> ChatResponse:
                 "A cota gratuita do Gemini foi atingida ou está temporariamente "
                 "indisponível. Confira os limites do projeto no Google AI Studio."
             )
+        elif error.code in (500, 502, 503, 504):
+            detail = (
+                "O Gemini está temporariamente indisponível, mesmo após tentar "
+                "o modelo alternativo. Tente novamente em instantes."
+            )
         else:
             detail = "Falha ao consultar o Gemini. Tente novamente mais tarde."
         raise HTTPException(
-            status_code=503 if error.code in (400, 401, 403, 429) else 502,
+            status_code=503
+            if error.code in (400, 401, 403, 429, 500, 502, 503, 504)
+            else 502,
             detail=detail,
         ) from error
 

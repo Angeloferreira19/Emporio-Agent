@@ -1,3 +1,6 @@
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+
 export default function MessageBubble({ message }) {
   const isUser = message.role === 'user'
 
@@ -7,7 +10,24 @@ export default function MessageBubble({ message }) {
       <div className="message-content">
         <span className="message-author">{isUser ? 'Você' : 'Empório da Música'}</span>
         <div className={`message-bubble ${isUser ? 'user-bubble' : 'assistant-bubble'}`}>
-          <p>{message.content}</p>
+          {isUser ? (
+            <p>{message.content}</p>
+          ) : (
+            <div className="markdown-content">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  a: ({ children, ...props }) => (
+                    <a {...props} target="_blank" rel="noreferrer">
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          )}
           {message.tools?.length > 0 && (
             <span className="tool-badge">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
