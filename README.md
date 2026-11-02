@@ -1,8 +1,8 @@
-# Empório da Música — atendimento
+# Empório da Música — Customer Support
 
-## Ambiente local
+## Local environment
 
-O backend usa Python 3.11 ou superior. Para criar o ambiente virtual e instalar as dependências:
+The backend requires Python 3.11 or later. To create a virtual environment and install its dependencies:
 
 ```bash
 cd backend
@@ -12,37 +12,53 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-No Windows, ative o ambiente com `.venv\Scripts\activate`.
+On Windows, activate the environment with `.venv\Scripts\activate`.
 
-## Executar a API
+## Run the API
 
-Ainda em `backend/`, inicie o servidor de desenvolvimento:
+From `backend/`, start the development server:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-A API fica disponível em <http://127.0.0.1:8000>. A rota `GET /` mostra os links úteis, `GET /health` verifica se o serviço está ativo, e a documentação interativa fica em <http://127.0.0.1:8000/docs>. O endpoint de conversa é `POST /api/chat`.
+The API is available at <http://127.0.0.1:8000>. The `GET /` route lists useful links, `GET /health` checks whether the service is running, and interactive API documentation is available at <http://127.0.0.1:8000/docs>. The chat endpoint is `POST /api/chat`.
 
-## Configuração do modelo
+## Configure the model
 
-Copie `backend/.env.example` para `backend/.env` e preencha `GEMINI_API_KEY` com uma chave criada no [Google AI Studio](https://aistudio.google.com/api-keys). `GEMINI_MODEL` define o modelo principal; se ele estiver temporariamente indisponível, o agente tenta `GEMINI_FALLBACK_MODEL` (por padrão, `gemini-3.5-flash`). Ajuste também `GEMINI_EMBEDDING_MODEL` se necessário. O arquivo `.env` é ignorado pelo Git.
+Copy `backend/.env.example` to `backend/.env` and set `GEMINI_API_KEY` to a key created in [Google AI Studio](https://aistudio.google.com/api-keys). `GEMINI_MODEL` selects the primary model. If it is temporarily unavailable, the agent tries `GEMINI_FALLBACK_MODEL` (default: `gemini-3.5-flash`). You can also adjust `GEMINI_EMBEDDING_MODEL`. The `.env` file is ignored by Git.
 
-## Preparar dados para o agente
+## Prepare the agent data
 
-Com o ambiente virtual ativado, execute a partir de `backend/`:
+With the virtual environment activated, run this command from `backend/`:
 
 ```bash
 python prepare_data.py
 ```
 
-O comando valida as relações entre os CSVs, interpreta as especificações JSON dos produtos, lê as políticas em PDF e gera `backend/processed/agent_documents.jsonl`. Na inicialização, o backend gera embeddings com o Gemini e sincroniza os documentos com o Chroma em `backend/processed/chroma`, atualizando apenas registros alterados. Clientes e pedidos são validados, mas não entram no índice semântico; consulte esses dados de forma estruturada para evitar indexar informações pessoais. Para conferir as contagens e a integridade dos arquivos, execute `python explore.py`.
+This command validates relationships between the CSV files, parses product specifications stored as JSON, reads the PDF store policies, and generates `backend/processed/agent_documents.jsonl`. At startup, the backend creates Gemini embeddings and synchronizes the documents with Chroma in `backend/processed/chroma`, updating only changed records. Customer and order files are validated but are not added to the semantic index, avoiding the indexing of personal information. To inspect file counts and integrity, run `python explore.py`.
 
-O Gemini API oferece cota gratuita para alguns modelos, sujeita a limites de taxa e disponibilidade por modelo/região; consulte a [página de preços e cotas](https://ai.google.dev/gemini-api/docs/pricing). Na modalidade gratuita, o Google pode usar o conteúdo enviado para melhorar os produtos, conforme os termos do serviço. Evite enviar dados pessoais ou sensíveis.
+The Gemini API offers free quotas for some models, subject to rate limits and model or regional availability; see the [pricing and rate limits page](https://ai.google.dev/gemini-api/docs/pricing). Under the free tier, Google may use submitted content to improve its products, according to its terms of service. Avoid sending personal or sensitive data.
 
-## Executar o frontend
+## Technical decisions
 
-O frontend usa React e Vite e requer Node.js 20.19 ou superior. Em outro terminal, instale as dependências e inicie a interface:
+- **Language and API:** Python is required by the challenge. FastAPI provides a small HTTP interface between the agent and the web frontend, with request validation and interactive API documentation.
+- **Agent architecture and retrieval:** I chose retrieval-augmented generation (RAG) because it is familiar from my previous projects and lets me build on an approach I know well. The agent retrieves relevant product catalog or policy passages from a Chroma collection and provides them to the model as context. This keeps answers grounded in the supplied materials without adding a separate orchestration framework.
+- **Model provider:** I chose Gemini because, among the widely used hosted LLM providers I considered, its free quota was the best fit for a prototype with limited resources. The provider is configurable, and a fallback model is attempted when generation fails due to transient server errors. This is a practical trade-off, not a claim that Gemini is universally the best model.
+- **Frontend:** I chose React for its flexibility in building and customizing the chat experience. The browser stores conversation history for display, but previous messages are not sent as context to the backend.
+- **Data preparation:** Product specifications are parsed from JSON, CSV relationships are validated, and store policy text is extracted from the supplied PDF. Customer and order tables are validated but excluded from the semantic index to avoid indexing personal information.
+
+## Example conversations
+
+The agent is configured to respond in Portuguese. The following illustrative transcripts are provided in English for the submission; product details were checked against the supplied catalog, and policy details against the store policy document:
+
+- [Product availability and prices](./examples/01-product-catalog.md)
+- [Online purchase return policy](./examples/02-return-policy.md)
+- [Store address and opening hours](./examples/03-store-information.md)
+
+## Run the frontend
+
+The frontend uses React and Vite and requires Node.js 20.19 or later. In another terminal, install the dependencies and start the UI:
 
 ```bash
 cd frontend
@@ -50,12 +66,25 @@ npm install
 npm run dev
 ```
 
-Abra o endereço exibido pelo Vite. Durante o desenvolvimento, as rotas `/api` e `/health` são encaminhadas para o backend em `http://localhost:8000`; mantenha a API em execução para conversar com o agente. O frontend mantém uma lista local de conversas no navegador: é possível alternar entre elas e excluir cada histórico pela barra lateral. Esses dados não são enviados como contexto ao agente nem sincronizados com o backend. A interface oferece temas claro e escuro, salva a preferência no navegador e usa a preferência do sistema na primeira visita. Para validar o frontend, execute `npm run lint` e `npm run build` dentro de `frontend/`.
+Open the address printed by Vite. During development, `/api` and `/health` requests are proxied to the backend at `http://localhost:8000`; keep the API running to chat with the agent. The frontend stores a local conversation list in the browser. Users can switch between conversations or delete them from the sidebar. This history is not sent to the agent as context or synchronized with the backend. The UI supports light and dark themes, saves the selected theme in the browser, and follows the system preference on the first visit. To validate the frontend, run `npm run lint` and `npm run build` from `frontend/`.
 
-## Dependências
+## Known limitations and future improvements
 
-- **FastAPI e Uvicorn:** API HTTP e servidor local.
-- **Google Gen AI SDK:** integração com o Gemini para respostas e embeddings.
-- **Pydantic Settings e python-dotenv:** configuração por variáveis de ambiente.
-- **pandas:** leitura e tratamento dos arquivos CSV.
-- **pypdf:** extração de texto das políticas em PDF.
+- **Provider availability and quotas:** Generation and embedding depend on the Gemini API. A fallback model helps with temporary generation outages, but it does not remove provider, quota, or embedding-service dependency.
+- **Catalog freshness:** Product prices and stock reflect the supplied CSV snapshot, not a live inventory system.
+- **Order support:** Customer and order data are validated but are not queried by the agent. With more time, I would add a secure, structured order lookup with customer verification instead of exposing those records through semantic search.
+- **No conversational context:** Although the frontend saves conversation history locally, each request is answered from the current message and retrieved documents; prior turns are not included in the model prompt.
+- **Evaluation and automation:** The prototype uses a straightforward retrieval-and-generation flow. With more time, I would automate more of the agent's decision-making with structured tools, and add an evaluation set for retrieval relevance, factual accuracy, and out-of-scope questions.
+- **Frontend polish:** Given more time, I would continue refining the interface and testing it with users.
+
+## AI coding assistant usage
+
+I used GitHub Copilot as a coding assistant during development. It helped me explore implementation options, get unstuck, and move faster, especially while building and refining the frontend. I used it as support rather than as a substitute for project decisions: I chose the overall direction based on the challenge requirements and my experience, then reviewed and tested the resulting changes. With more time, I would aim to rely less on AI assistance and implement more of the work independently.
+
+## Dependencies
+
+- **FastAPI and Uvicorn:** HTTP API and local server.
+- **Google Gen AI SDK:** Gemini integration for responses and embeddings.
+- **Pydantic Settings and python-dotenv:** environment-based configuration.
+- **pandas:** CSV loading and processing.
+- **pypdf:** text extraction from the store policies PDF.

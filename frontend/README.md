@@ -1,22 +1,22 @@
-# Interface web — Empório da Música
+# Web frontend — Empório da Música
 
-## Requisitos
+## Requirements
 
-- Node.js 20.19 ou superior.
-- Backend da Empório da Música em execução em `http://localhost:8000`.
+- Node.js 20.19 or later.
+- The Empório da Música backend running at `http://localhost:8000`.
 
-## Desenvolvimento
+## Development
 
-Na pasta `frontend/`, instale as dependências e inicie o Vite:
+From the `frontend/` directory, install the dependencies and start Vite:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abra o endereço local exibido no terminal. O proxy do Vite encaminha `/api` e `/health` para o backend. As conversas ficam salvas localmente no navegador e aparecem na barra lateral, onde é possível alternar entre elas ou excluí-las. O histórico é apenas visual; ele não é enviado como contexto ao agente nem sincronizado com o backend. Use o botão de tema no topo para alternar entre os modos claro e escuro; a preferência fica salva no navegador.
+Open the local address printed in the terminal. Vite proxies `/api` and `/health` requests to the backend. Conversations are stored locally in the browser and shown in the sidebar, where they can be selected or deleted. The history is for display only; it is not sent to the agent as context or synchronized with the backend. Use the theme button in the top bar to switch between light and dark modes. The selected theme is saved in the browser.
 
-## Validação
+## Validation
 
 ```bash
 npm run lint
