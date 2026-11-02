@@ -1,4 +1,4 @@
-# Empório da Música — backend
+# Empório da Música — atendimento
 
 ## Ambiente local
 
@@ -39,6 +39,18 @@ python prepare_data.py
 O comando valida as relações entre os CSVs, interpreta as especificações JSON dos produtos, lê as políticas em PDF e gera `backend/processed/agent_documents.jsonl`. Na inicialização, o backend gera embeddings com o Gemini e sincroniza os documentos com o Chroma em `backend/processed/chroma`, atualizando apenas registros alterados. Clientes e pedidos são validados, mas não entram no índice semântico; consulte esses dados de forma estruturada para evitar indexar informações pessoais. Para conferir as contagens e a integridade dos arquivos, execute `python explore.py`.
 
 O Gemini API oferece cota gratuita para alguns modelos, sujeita a limites de taxa e disponibilidade por modelo/região; consulte a [página de preços e cotas](https://ai.google.dev/gemini-api/docs/pricing). Na modalidade gratuita, o Google pode usar o conteúdo enviado para melhorar os produtos, conforme os termos do serviço. Evite enviar dados pessoais ou sensíveis.
+
+## Executar o frontend
+
+O frontend usa React e Vite e requer Node.js 20.19 ou superior. Em outro terminal, instale as dependências e inicie a interface:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abra o endereço exibido pelo Vite. Durante o desenvolvimento, as rotas `/api` e `/health` são encaminhadas para o backend em `http://localhost:8000`; mantenha a API em execução para conversar com o agente. Para validar o frontend, execute `npm run lint` e `npm run build` dentro de `frontend/`.
 
 ## Dependências
 
