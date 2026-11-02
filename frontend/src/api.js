@@ -1,4 +1,4 @@
-const USE_MOCK = true
+const USE_MOCK = false
 
 export async function sendMessage(sessionId, message) {
     if (USE_MOCK) {
