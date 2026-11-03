@@ -50,11 +50,11 @@ The Gemini API offers free quotas for some models, subject to rate limits and mo
 
 ## Example conversations
 
-The agent is configured to respond in Portuguese. The following illustrative transcripts are provided in English for the submission; product details were checked against the supplied catalog, and policy details against the store policy document:
+The agent is configured to respond in Portuguese. These examples show how it uses the supplied catalog and store policies; the illustrative transcripts are in English for the submission:
 
-- [Product availability and prices](./examples/01-product-catalog.md)
-- [Online purchase return policy](./examples/02-return-policy.md)
-- [Store address and opening hours](./examples/03-store-information.md)
+- **Product availability and prices:** “Which nylon-string guitars are available for under R$1,000?” The agent lists matching products with catalog prices and stock. ([Transcript](./examples/01-product-catalog.md))
+- **Return policy:** “I bought an instrument online and changed my mind. Can I return it?” The agent explains the return window and conditions from the policy. ([Transcript](./examples/02-return-policy.md))
+- **Store information:** “Where is the store, and when are you open?” The agent answers with the address and opening hours. ([Transcript](./examples/03-store-information.md))
 
 ## Run the frontend
 
